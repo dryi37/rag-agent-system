@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  app:
+    image: khoi/rag-agent:latest
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      vector-search:
+        condition: service_healthy
+      web-search:
+        condition: service_healthy
+    restart: unless-stopped
+
+  vector-search:
+    image: khoi/rag-agent-mcp:latest
+    command: python vector_search.py
+    ports:
+      - "8010:8010"
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  web-search:
+    image: khoi/rag-agent-mcp:latest
+    command: python web_search.py
+    ports:
+      - "8011:8011"
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8011/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  reranker:
+    image: khoi/reranker:latest
+    ports:
+      - "8002:8002"
+    environment:
+      - USE_FP16=true
+    volumes:
+      - model_cache:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    profiles: ["gpu"]
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+  model_cache:

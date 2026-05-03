@@ -1,0 +1,22 @@
+langgraph==1.0.7
+langchain==1.2.8
+langchain-google-genai==4.2.0
+langchain-qdrant==1.1.0
+langchain-community==0.4.1
+qdrant-client==1.17.0
+tavily-python>=0.5.0
+fastapi==0.128.0
+uvicorn==0.40.0
+python-dotenv==1.2.1
+pydantic==2.12.5
+psycopg-binary==3.3.3
+langgraph-checkpoint-postgres==3.0.4
+redis[asyncio]>=5.0.0
+redis==7.2.1
+numpy==2.4.1
+tiktoken==0.12.0
+httpx==0.28.1
+langchain-text-splitters==1.1.1
+mcp==1.26.0
+langchain-mcp-adapters== 0.2.1
+langfuse==4.0.1

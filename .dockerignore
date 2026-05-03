@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+.venv
+venv
+
+# Env
+.env
+
+# Docs
+docs/
+*.md
+README*
+
+# Other services — có Dockerfile riêng, không cần trong app image
+mcp_servers/
+services/
+
+# 
+docker-compose.yml
+Dockerfile

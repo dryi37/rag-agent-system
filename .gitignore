@@ -1,24 +1,67 @@
-# data
-data/
+/docs
+test_aws.py
+test_mcp.py
 
-# vector database
-chroma_db/
-
-# cache
-router_cache.*
-chat_ui.db
-
-#temp files
-*.ipynb
-
-# local
-.env
-
-# checkpoints
-checkpoints/
-
-# Python cache
+# Python
 __pycache__/
-**/__pycache__/
 *.py[cod]
 *$py.class
+
+# Virtual environment
+.env
+.venv/
+venv/
+env/
+
+# Environment variables
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Data / local files
+data/
+data.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Model / training artifacts (nếu có)
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Misc
+*.sqlite3
