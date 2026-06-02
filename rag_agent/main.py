@@ -3,7 +3,6 @@ import logging
 import json
 import uuid
 import asyncio
-from datetime import datetime, timezone
 from typing import Optional, AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -104,12 +103,15 @@ async def _run_agent(
         
     langfuse_handler = get_langfuse_handler()
 
-    with langfuse.start_as_current_observation(as_type="span", name="rag_agent") as span:
+    with langfuse.start_as_current_observation(
+        as_type="span", 
+        name="rag agent",
+        input={"query": request.query}
+    ) as span:
         with propagate_attributes(
             session_id=thread_id,
             user_id=request.user_id or "anonymous",
-            tags=["rag_agent"],
-            input={"query": request.query},
+            tags=["dev"],
         ):
             initial_state = {
                 "query": request.query,
@@ -123,7 +125,6 @@ async def _run_agent(
                     "publisher": publisher
                 },
                 "callbacks": [langfuse_handler],
-
             }
 
             try:
@@ -172,19 +173,11 @@ async def health():
 @app.post("/threads", response_model=ThreadResponse, status_code=201)
 async def create_thread():
     thread_id = str(uuid.uuid4())
-    # nên viết module cho clean hơn
-    await app.state.redis.setex(
-        f"thread:{thread_id}",
-        7200,
-        json.dumps({"created_at": datetime.now(timezone.utc).isoformat()})
-    )
     return ThreadResponse(thread_id=thread_id)
 
 
 @app.post("/threads/{thread_id}/messages", status_code=202)
 async def send_message(thread_id: str, request: MessageRequest):
-    if not await app.state.redis.exists(f"thread:{thread_id}"):
-        raise HTTPException(status_code=404, detail="Thread not found")
     asyncio.create_task(_run_agent(
         thread_id=thread_id,
         request=request,

@@ -113,14 +113,20 @@ cp .env.example .env
 
 ### 3. Ingest Documents
 
+The ingest script creates a Qdrant collection with both dense (Gemini) and sparse (BM25) vector configurations.
+
 ```bash
 pip install -r requirements.txt
 
 mkdir docs
 # Add your PDF or .txt files to docs/
 
-python ingest.py --source ./docs
+python ingest.py --source ./docs --collection rag_documents
 ```
+
+**Important**: The collection must have `sparse_vectors_config` for BM25. The script automatically creates it with the correct configuration. If you need to re-index with a new configuration, use `recreate=True` (default behavior).
+
+After ingestion, the system is ready for hybrid search.
 
 ### 4. Run Local
 
@@ -163,6 +169,19 @@ curl -X POST http://localhost:8000/threads/{thread_id}/messages \
 | `GET` | `/health` | Health check |
 | `DELETE` | `/cache` | Clear semantic cache |
 
+### MCP Tools
+
+The agent uses MCP (Model Context Protocol) tools for retrieval:
+
+**`search_internal_docs`** - Hybrid search (dense + sparse with RRF)
+- `query` (string, required): Search query
+- `top_k` (int, optional): Number of results (default: 5)
+
+The tool always uses hybrid search combining:
+- **Dense**: Gemini embeddings (semantic)
+- **Sparse**: BM25 (keyword)
+- **Fusion**: Reciprocal Rank Fusion (RRF)
+
 ### SSE Events
 
 ```json
@@ -199,3 +218,79 @@ Decouples the request lifecycle from the agent execution. Client can disconnect 
 
 **Why managed Postgres/Qdrant?**
 Stateful services should not run on K8s without proper operators. Managed services handle backup, failover, and scaling automatically.
+
+## Hybrid Search
+
+The system implements **advanced hybrid search** combining dense vector embeddings (Gemini) with sparse BM25 keyword search using **Reciprocal Rank Fusion (RRF)**:
+
+### Architecture
+
+```
+┌─────────────────┐
+│   User Query    │
+└────────┬────────┘
+         │
+    ┌────▼────┐
+    │ Embed   │  (Gemini)
+    └────┬────┘
+         │
+    ┌────▼───────────────────────────────┐
+    │   Qdrant Query with Prefetch       │
+    │                                    │
+    │  Prefetch[0]: Sparse (BM25)       │
+    │    - Compute BM25 from query text │
+    │    - using="sparse"               │
+    │    - limit = top_k * 2            │
+    │                                    │
+    │  Prefetch[1]: Dense (Vector)      │
+    │    - Gemini embedding             │
+    │    - using="dense"                │
+    │    - limit = top_k * 2            │
+    │                                    │
+    │  Fusion: RRF (Reciprocal Rank)    │
+    └────┬──────────────────────────────┘
+         │
+    ┌────▼────────────┐
+    │  Top-K Results  │
+    └─────────────────┘
+```
+
+### Collection Configuration
+
+Hybrid search requires a Qdrant collection with both dense and sparse vector configs:
+
+```python
+vectors_config={
+    "dense": VectorParams(size=3072, distance=COSINE)  # Gemini embedding
+}
+sparse_vectors_config={
+    "sparse": SparseVectorParams(modifier=Modifier.IDF)  # BM25 with IDF
+}
+```
+
+The system uses `on_disk_payload=True` to enable BM25 text indexing.
+
+### Usage
+
+The `search_internal_docs` MCP tool supports hybrid mode:
+
+```json
+{
+  "query": "machine learning pipeline",
+  "top_k": 5,
+  "hybrid": true
+}
+```
+
+- `hybrid=false`: Pure dense vector search (semantic)
+- `hybrid=true`: Hybrid search (dense + sparse + RRF fusion)
+
+### Re-indexing
+
+Hybrid search requires the collection to have both vector types. Re-run ingestion:
+
+```bash
+python ingest.py --source ./docs --collection rag_documents
+```
+
+The ingest script automatically creates the collection with the correct configuration.

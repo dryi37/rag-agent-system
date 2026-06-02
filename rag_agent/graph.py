@@ -1,6 +1,7 @@
 import os
 from psycopg_pool import AsyncConnectionPool
 from langgraph.graph import StateGraph, END
+from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 from rag_agent.state import AgentState
@@ -56,7 +57,11 @@ async def get_checkpointer():
     if _checkpointer is None:
         _pool = AsyncConnectionPool(
             conninfo=postgres_url,
-            kwargs={"prepare_threshold": None}, 
+            kwargs={
+                "prepare_threshold": None,
+                "autocommit": True, 
+                "row_factory": dict_row
+            }, 
             open=False,
         )
         await _pool.open()

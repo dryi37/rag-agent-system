@@ -29,6 +29,10 @@ data.txt
 
 # Pytest
 .pytest_cache/
+test_direct.py
+test_hybrid_search.py
+test_mcp_langchain.py
+test_mcp_web_search.py
 
 # Coverage
 .coverage
