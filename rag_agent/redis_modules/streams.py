@@ -59,20 +59,20 @@ class EventPublisher:
     async def token(self, thread_id: str, content: str) -> None:
         await self._publish(thread_id, AgentEvent.TOKEN, {"content": content})
 
-    async def hallucination_check(self, thread_id: str) -> None:
-        await self._publish(thread_id, AgentEvent.HALLUCINATION_CHECK, {})
+    # async def hallucination_check(self, thread_id: str) -> None:
+    #     await self._publish(thread_id, AgentEvent.HALLUCINATION_CHECK, {})
 
-    async def retrying(self, thread_id: str, iteration: int) -> None:
-        await self._publish(thread_id, AgentEvent.RETRYING, {"iteration": iteration})
+    # async def retrying(self, thread_id: str, iteration: int) -> None:
+    #     await self._publish(thread_id, AgentEvent.RETRYING, {"iteration": iteration})
 
     async def error(self, thread_id: str, message: str) -> None:
         await self._publish(thread_id, AgentEvent.ERROR, {"message": message})
 
-    async def done(self, thread_id: str, answer: str = "", sources: list = None, iterations: int = 0, from_cache: bool = False) -> None:
+    async def done(self, thread_id: str, answer: str = "", sources: list = None, from_cache: bool = False) -> None:
         result = {
             "answer":     answer,
             "sources":    sources or [],
-            "iterations": iterations,
+            # "iterations": iterations,
             "cache_hit":  from_cache,
         }
         key_result = KEY_RESULT.format(thread_id=thread_id)

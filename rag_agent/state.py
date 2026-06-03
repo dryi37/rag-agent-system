@@ -13,7 +13,7 @@ class AgentState(TypedDict, total=False):
     retrieved_docs: List[Dict[str, Any]]
 
     generation: str
-    hallucination_score: Literal["yes", "no"]
+    # hallucination_score: Literal["yes", "no"]
     
-    iterations: int
-    max_iterations: int
+    # iterations: int
+    # max_iterations: int

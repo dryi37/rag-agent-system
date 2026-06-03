@@ -17,12 +17,12 @@ class RouteDecision(BaseModel):
     reason: str = Field(description="A brief explanation for why this routing decision was chosen.")
 
 
-class HallucinationDecision(BaseModel):
-    """
-    Decision returned by the hallucination checker.
-    Evaluates whether the generated answer is grounded in the retrieved documents.
-    """
-    has_hallucination: bool = Field(
-        description="True if the answer contains information that is not supported by the provided documents."
-    )
-    reason: str = Field(description="A short explanation describing why the answer is considered hallucinated or not.")
+# class HallucinationDecision(BaseModel):
+#     """
+#     Decision returned by the hallucination checker.
+#     Evaluates whether the generated answer is grounded in the retrieved documents.
+#     """
+#     has_hallucination: bool = Field(
+#         description="True if the answer contains information that is not supported by the provided documents."
+#     )
+#     reason: str = Field(description="A short explanation describing why the answer is considered hallucinated or not.")

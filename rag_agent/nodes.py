@@ -8,7 +8,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
 from rag_agent.state import AgentState
-from rag_agent.schemas import HallucinationDecision
+# from rag_agent.schemas import HallucinationDecision
 from rag_agent.conversation import (
     format_history_for_prompt,
     summarize_history,
@@ -24,7 +24,7 @@ llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     api_key=os.getenv("GEMINI_API_KEY")
 )
-hallucination_llm = llm.with_structured_output(HallucinationDecision)
+# hallucination_llm = llm.with_structured_output(HallucinationDecision)
 
 # Node
 
@@ -34,9 +34,9 @@ async def process_history(state: AgentState, config: RunnableConfig) -> AgentSta
         **state,
         "messages": [HumanMessage(content=state["query"])],
         "retrieved_docs": [],
-        "hallucination_score": "no",
+        # "hallucination_score": "no",
         "agent_iterations": 0,
-        "iterations": 0,
+        # "iterations": 0,
     }
 
 
@@ -99,37 +99,8 @@ async def generate(state: AgentState, config: RunnableConfig) -> AgentState:
         **state,
         "generation": full_response,
         "messages": [AIMessage(content=full_response)],
-        "iterations": state.get("iterations", 0) + 1,
+        # "iterations": state.get("iterations", 0) + 1,
     }
-
-
-async def check_hallucination(state: AgentState, config: RunnableConfig) -> AgentState:
-    await _publish(config, lambda p: p.hallucination_check(state["thread_id"]))
-    docs = state.get("retrieved_docs", [])
-    if not docs:
-        return {**state, "hallucination_score": "no"}
-
-    context = "\n\n".join([doc["content"] for doc in docs])
-
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", """Determine whether the answer contains information that is NOT supported by the provided documents.
-
-Set has_hallucination = true if the answer includes fabricated facts, unsupported claims, or reasoning beyond the document content."""),
-        ("human", "Documents:\n{context}\nAnswer:\n{answer}"),
-    ])
-
-    try:
-        result: HallucinationDecision = await hallucination_llm.ainvoke(
-            prompt.format_messages(context=context, answer=state["generation"])
-        )
-        score = "yes" if result.has_hallucination else "no"
-        if score == "yes":
-            logger.warning(f"Hallucination detected: {result.reason}")
-    except Exception:
-        score = "no"
-
-    return {**state, "hallucination_score": score}
-
 
 async def post_turn_cleanup(state: AgentState, config: RunnableConfig) -> AgentState:
     state_after_summary = await summarize_history(state)
@@ -138,11 +109,39 @@ async def post_turn_cleanup(state: AgentState, config: RunnableConfig) -> AgentS
     }
 
 
+# async def check_hallucination(state: AgentState, config: RunnableConfig) -> AgentState:
+#     await _publish(config, lambda p: p.hallucination_check(state["thread_id"]))
+#     docs = state.get("retrieved_docs", [])
+#     if not docs:
+#         return {**state, "hallucination_score": "no"}
+
+#     context = "\n\n".join([doc["content"] for doc in docs])
+
+#     prompt = ChatPromptTemplate.from_messages([
+#         ("system", """Determine whether the answer contains information that is NOT supported by the provided documents.
+
+# Set has_hallucination = true if the answer includes fabricated facts, unsupported claims, or reasoning beyond the document content."""),
+#         ("human", "Documents:\n{context}\nAnswer:\n{answer}"),
+#     ])
+
+#     try:
+#         result: HallucinationDecision = await hallucination_llm.ainvoke(
+#             prompt.format_messages(context=context, answer=state["generation"])
+#         )
+#         score = "yes" if result.has_hallucination else "no"
+#         if score == "yes":
+#             logger.warning(f"Hallucination detected: {result.reason}")
+#     except Exception:
+#         score = "no"
+
+#     return {**state, "hallucination_score": score}
+
+
 # Conditional Edge 
 
-def should_retry(state: AgentState) -> str:
-    if state.get("iterations", 0) >= state.get("max_iterations", 3):
-        return "end"
-    if state.get("hallucination_score") == "yes":
-        return "retry"
-    return "end"
+# def should_retry(state: AgentState) -> str:
+#     if state.get("iterations", 0) >= state.get("max_iterations", 3):
+#         return "end"
+#     if state.get("hallucination_score") == "yes":
+#         return "retry"
+#     return "end"

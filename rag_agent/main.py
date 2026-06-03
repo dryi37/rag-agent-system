@@ -36,14 +36,14 @@ class ThreadResponse(BaseModel):
 class MessageRequest(BaseModel):
     query: str
     user_id: Optional[str] = None
-    max_iterations: int = 3
+    # max_iterations: int = 3
     skip_cache: bool = False
 
 
 class ThreadResult(BaseModel):
     answer: str
     sources: list[dict]
-    iterations: int
+    # iterations: int
     cache_hit: bool = False
 
 
@@ -96,7 +96,7 @@ async def _run_agent(
                 thread_id,
                 answer=cached["answer"],
                 sources=cached.get("sources", []),
-                iterations=0,
+                # iterations=0,
                 from_cache=True,
             )
             return
@@ -117,7 +117,7 @@ async def _run_agent(
                 "query": request.query,
                 "thread_id": thread_id,
                 "generation": "",
-                "max_iterations": request.max_iterations,
+                # "max_iterations": request.max_iterations,
             }
             config = {
                 "configurable": {
@@ -148,14 +148,14 @@ async def _run_agent(
     await semantic_cache.set(
         query=request.query,
         answer=final_state["generation"],
-        metadata={"sources": sources, "iterations": final_state.get("iterations", 1)},
+        metadata={"sources": sources},
     )
 
     await publisher.done(
         thread_id,
         answer=final_state["generation"],
         sources=sources,
-        iterations=final_state.get("iterations", 0),
+        # iterations=final_state.get("iterations", 0),
     )
 
 # Endpoints 
