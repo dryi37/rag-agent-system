@@ -6,13 +6,13 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
-from rag_agent.state import AgentState
+from backend.state import AgentState
 
 load_dotenv()
 
 # -- Token budegt --
-HISTORY_TOKEN_BUDGET = int(os.getenv("HISTORY_TOKEN_BUDGET", 2000))
-RECENT_TOKEN_BUDGET = int(os.getenv("RECENT_TOKEN_BUDGET", 1500))
+HISTORY_TOKEN_BUDGET = int(os.getenv("HISTORY_TOKEN_BUDGET", 4096))
+RECENT_TOKEN_BUDGET = int(os.getenv("RECENT_TOKEN_BUDGET", 3072))
 SUMMARY_TOKEN_BUDGET = HISTORY_TOKEN_BUDGET - RECENT_TOKEN_BUDGET
 
 _enc = tiktoken.get_encoding("cl100k_base")

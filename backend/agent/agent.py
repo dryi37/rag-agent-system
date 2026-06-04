@@ -5,17 +5,17 @@ import asyncio
 from typing import Optional
 from dotenv import load_dotenv
 
+from langgraph.config import get_stream_writer
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from rag_agent.state import AgentState
-from rag_agent.inference_clients import rerank_documents
-from rag_agent.conversation import format_history_for_prompt, RECENT_TOKEN_BUDGET
-from rag_agent.utils import _publish
+from backend.state import AgentState
+from backend.agent.inference_clients import rerank_documents
+from backend.agent.conversation import format_history_for_prompt, RECENT_TOKEN_BUDGET
 
-from rag_agent.langfuse.prompts import get_system_prompt
+from backend.langfuse.prompts import get_system_prompt
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -87,9 +87,10 @@ def _parse_tool_results_to_docs(tool_name: str, tool_content) -> list[dict]:
 
 # react agent node
 async def react_agent(state: AgentState, config: RunnableConfig) -> AgentState:
+    writer = get_stream_writer()
+    writer({"type": "status", "message": "Agent đang suy nghĩ..."})
     if _mcp_client is None or _llm_with_tools is None:
         raise RuntimeError("MCP client is not initialized. Call init_mcp_client() at startup.")
-    await _publish(config, lambda p: p.agent_thinking(state["thread_id"], state["query"]))
 
     history_str = format_history_for_prompt(
         state.get("messages", []),
@@ -127,25 +128,22 @@ async def react_agent(state: AgentState, config: RunnableConfig) -> AgentState:
             tool_args = tool_call["args"]
 
             logger.info(f"[Iteration {iterations}] Calling tool: {tool_name}({tool_args})")
-            await _publish(config, lambda p: p.tool_started(state["thread_id"], tool_name))
 
             try:
+                writer({"type": "status", "message": f"Đang tìm kiếm với {tool_name}..."})
                 result = await asyncio.wait_for(
                     _tools_by_name[tool_name].ainvoke(tool_args),
                     timeout=TOOL_TIMEOUT
                 )
                 content = result
-                await _publish(config, lambda p: p.tool_done(state["thread_id"], tool_name))
 
             except asyncio.TimeoutError:
                 logger.warning(f"Tool {tool_name} timed out")
                 content = f"Tool timeout: {tool_name} took longer than {TOOL_TIMEOUT}s"
-                await _publish(config, lambda p: p.error(state["thread_id"], f"Tool {tool_name} timeout"))
 
             except Exception as e:
                 logger.warning(f"Tool {tool_name} failed: {e}")
                 content = f"Tool error: {str(e)}"
-                await _publish(config, lambda p: p.error(state["thread_id"], f"Tool {tool_name} failed: {str(e)}"))
 
             new_docs = _parse_tool_results_to_docs(tool_name, content)
             if new_docs:
@@ -170,7 +168,6 @@ async def react_agent(state: AgentState, config: RunnableConfig) -> AgentState:
 
     retrieved_docs = []
     for tool_name, docs in docs_by_tool.items():
-        # print(f"BEFORE RERANK [{tool_name}]: {len(docs)} docs")
         try:
             top_docs = await rerank_documents(
                 query=state["query"],
@@ -180,9 +177,7 @@ async def react_agent(state: AgentState, config: RunnableConfig) -> AgentState:
         except Exception as e:
             logger.warning(f"Rerank failed for {tool_name}: {e}")
             top_docs = docs[:RERANK_TOP_N_PER_SOURCE]
-        # print(f"AFTER RERANK [{tool_name}]: {len(top_docs)} docs")
         retrieved_docs.extend(top_docs)
-    # print(f"TOTAL retrieved_docs passed to generate: {len(retrieved_docs)}")
 
     logger.info(
         f"Agent done: {iterations} iterations, "

@@ -3,7 +3,6 @@ import json
 import hashlib
 import numpy as np
 from typing import Optional
-from datetime import timedelta
 
 import redis.asyncio as aioredis
 from langchain_google_genai import GoogleGenerativeAIEmbeddings

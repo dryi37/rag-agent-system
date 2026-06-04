@@ -4,14 +4,12 @@ from langgraph.graph import StateGraph, END
 from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-from rag_agent.state import AgentState
-from rag_agent.agent import react_agent
-from rag_agent.nodes import (
+from backend.state import AgentState
+from backend.agent.agent import react_agent
+from backend.agent.nodes import (
     process_history,
     generate,
-    # check_hallucination,
     post_turn_cleanup,
-    # should_retry,
 )
 
 
@@ -21,23 +19,12 @@ def build_graph(checkpointer=None):
     graph.add_node("process_history", process_history)
     graph.add_node("react_agent", react_agent)
     graph.add_node("generate", generate)
-    # graph.add_node("check_hallucination", check_hallucination)
     graph.add_node("post_turn_cleanup", post_turn_cleanup)
 
     graph.set_entry_point("process_history")
     graph.add_edge("process_history", "react_agent")
     graph.add_edge("react_agent", "generate")
     graph.add_edge("generate", "post_turn_cleanup")
-
-    # graph.add_conditional_edges(
-    #     "check_hallucination",
-    #     should_retry,
-    #     {
-    #         "retry": "react_agent",
-    #         "end": "post_turn_cleanup",
-    #     }
-    # )
-
     graph.add_edge("post_turn_cleanup", END)
 
     return graph.compile(checkpointer=checkpointer)

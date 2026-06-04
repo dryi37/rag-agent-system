@@ -2,22 +2,15 @@ import hashlib
 from typing import Optional
 
 from psycopg.rows import dict_row
-from jose import jwt
 
-from datetime import datetime, timezone
+from datetime import datetime
 import psycopg
 
 # Refresh token
 def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
-def _get_token_expiry(token: str) -> datetime:
-    """Lấy exp từ JWT payload, không verify signature."""
-    payload = jwt.decode(token, options={"verify_signature": False})
-    return datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
-
-async def save_refresh_token(db: psycopg.AsyncConnection, user_id: int, token: str) -> None:
-    expires_at = _get_token_expiry(token)
+async def save_refresh_token(db: psycopg.AsyncConnection, user_id: int, token: str, expires_at: datetime) -> None:
     async with db.cursor() as cur:
         await cur.execute(
             "INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (%s, %s, %s)",

@@ -3,9 +3,9 @@ from typing import Optional
 from fastapi import Depends
 import psycopg
 
-from rag_agent.core.security import oauth2_scheme, verify_token
-from rag_agent.core.db import get_db
-from rag_agent.crud.user import get_user_by_id
+from backend.core.security import oauth2_scheme, verify_token
+from backend.core.db import get_db
+from backend.crud.user import get_user_by_id
 
 async def get_current_user(
     token: Optional[str] = Depends(oauth2_scheme),

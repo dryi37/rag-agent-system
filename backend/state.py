@@ -1,4 +1,4 @@
-from typing import TypedDict, List, Literal, Annotated, Optional, Dict, Any
+from typing import TypedDict, List, Annotated, Optional, Dict, Any
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
@@ -13,7 +13,3 @@ class AgentState(TypedDict, total=False):
     retrieved_docs: List[Dict[str, Any]]
 
     generation: str
-    # hallucination_score: Literal["yes", "no"]
-    
-    # iterations: int
-    # max_iterations: int

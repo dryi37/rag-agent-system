@@ -48,3 +48,9 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def get_token_expiry(token: str) -> datetime:
+    """Lấy exp từ JWT payload, không verify signature."""
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    return datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
