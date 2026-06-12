@@ -122,8 +122,7 @@ rag-agent-system/
 ├── services/reranker/             # Cross-encoder reranker microservice (GPU)
 ├── training/                      # Reranker fine-tuning pipelines (Jina, BGE-M3)
 ├── ingest.py                      # Document ingestion (PDF/TXT → Qdrant)
-├── docker-compose.yaml            # Development
-└── docker-compose.prod.yaml       # Production (healthchecks, build contexts)
+└── docker-compose.yaml            # Development
 ```
 
 ---
