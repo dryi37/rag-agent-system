@@ -6,13 +6,14 @@ A production-grade **Retrieval-Augmented Generation (RAG)** system featuring a R
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-black?style=flat-square)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square)](https://nextjs.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-orange?style=flat-square)](https://langchain-ai.github.io/langgraph)
+[![Qdrant](https://img.shields.io/badge/Qdrant-red?style=flat-square)](https://qdrant.tech)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square)](https://docs.docker.com/compose)
 
 ---
 
 ## Demo
 
-> ▶️ [Watch demo video](#)
+> ▶️ [Watch demo video](https://drive.google.com/file/d/1EiGbvllz4EotSpoqNo5I3LZ7phmSjKsF/view?usp=sharing)
 
 ---
 
