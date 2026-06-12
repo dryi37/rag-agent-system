@@ -69,3 +69,21 @@ docker-compose.override.yml
 
 # Misc
 *.sqlite3
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# Backend
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Env
+.env
+*.env.local
+
+# Docker
+*.log

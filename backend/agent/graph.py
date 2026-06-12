@@ -4,9 +4,9 @@ from langgraph.graph import StateGraph, END
 from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-from backend.state import AgentState
-from backend.agent.agent import react_agent
-from backend.agent.nodes import (
+from state import AgentState
+from agent.agent import react_agent
+from agent.nodes import (
     process_history,
     generate,
     post_turn_cleanup,

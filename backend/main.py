@@ -3,19 +3,20 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from backend.agent.graph import get_graph, close_checkpointer
-from backend.agent.inference_clients import close_clients
-from backend.agent.agent import init_mcp_client, close_mcp_client
-from backend.redis_modules import get_redis
-from backend.redis_modules.cache import SemanticCache
-from backend.langfuse.client import langfuse
-from backend.core.db import init_db_pool, close_db_pool
-from backend.routers.auth import router as auth_router
-from backend.routers.chat import router as chat_router
+from agent.graph import get_graph, close_checkpointer
+from agent.inference_clients import close_clients
+from agent.agent import init_mcp_client, close_mcp_client
+from redis_modules import get_redis
+from redis_modules.cache import SemanticCache
+from langfuse_client.client import langfuse
+from core.db import init_db_pool, close_db_pool
+from routers.auth import router as auth_router
+from routers.chat import router as chat_router
 
 load_dotenv()
 
@@ -52,6 +53,14 @@ app = FastAPI(
     title="RAG Agent",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth_router)

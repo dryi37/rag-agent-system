@@ -3,10 +3,10 @@ import logging
 from langfuse import propagate_attributes
 from langchain_core.messages import AIMessageChunk
 
-from backend.langfuse.handler import get_langfuse_handler
-from backend.langfuse.client import langfuse
-from backend.core.db import get_db_pool
-from backend.crud.thread import save_message
+from langfuse_client.handler import get_langfuse_handler
+from langfuse_client.client import langfuse
+from core.db import get_db_pool
+from crud.thread import save_message
 
 
 logger = logging.getLogger(__name__)
@@ -80,6 +80,8 @@ async def run_agent(thread_id, query, user_id, graph, semantic_cache):
                 answer=final_state["generation"],
                 metadata={"sources": sources},
             )
+
+            yield {"type": "sources", "sources": sources}
 
             async with get_db_pool().connection() as db:
                 await save_message(

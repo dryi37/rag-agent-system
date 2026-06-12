@@ -4,19 +4,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 import psycopg
 
-from backend.core.db import get_db
-from backend.core.security import (
+from core.db import get_db
+from core.security import (
     create_access_token,
     create_refresh_token,
     get_password_hash,
     verify_token,
 )
-from backend.crud.user import get_user_by_username, create_user
-from backend.core.security import verify_password
-from backend.crud.token import save_refresh_token, get_refresh_token, revoke_refresh_token
-from backend.schemas import TokenResponse, UserRegister, RefreshRequest
-from backend.core.security import get_token_expiry
-from backend.dependencies import get_current_user
+from crud.user import get_user_by_username, create_user
+from core.security import verify_password
+from crud.token import save_refresh_token, get_refresh_token, revoke_refresh_token
+from schemas import TokenResponse, UserRegister, RefreshRequest
+from core.security import get_token_expiry
+from dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -69,6 +69,12 @@ async def refresh(
     await save_refresh_token(db, user_id, new_refresh, expires_at)
 
     return TokenResponse(access_token=new_access, refresh_token=new_refresh)
+
+@router.get("/me")
+async def me(current_user: Optional[dict] = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return current_user
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

@@ -8,8 +8,8 @@ from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
-from backend.state import AgentState
-from backend.agent.conversation import (
+from state import AgentState
+from agent.conversation import (
     format_history_for_prompt,
     summarize_history,
     RECENT_TOKEN_BUDGET,
@@ -65,7 +65,7 @@ async def generate(state: AgentState, config: RunnableConfig) -> AgentState:
             ("system", """You are an intelligent assistant. Answer strictly based on the provided documents and conversation history.
 
 - Provide accurate information using ONLY the provided documents
-- Cite sources using [source] when referencing document content
+- Do NOT include any inline citations, source markers, or references like [source], [1], [SEARCH_WEB | url] in your response
 - Use conversation history to maintain continuity when relevant
 - Respond in the user's language"""),
             ("human", "Documents:\n{context}\n---\nConversation History:\n{history}\n---\nQuestion: {query}"),

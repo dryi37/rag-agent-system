@@ -54,6 +54,26 @@ async def get_thread_messages(
             (thread_id,),
         )
         return await cur.fetchall()
+    
+async def get_user_threads(
+    db: psycopg.AsyncConnection,
+    user_id: int,
+) -> list[dict]:
+    async with db.cursor(row_factory=dict_row) as cur:
+        await cur.execute(
+            """
+            SELECT t.id, t.created_at,
+                   (SELECT content FROM messages
+                    WHERE thread_id = t.id AND role = 'user'
+                    ORDER BY created_at ASC LIMIT 1) AS preview
+            FROM threads t
+            WHERE t.user_id = %s
+            ORDER BY t.created_at DESC
+            LIMIT 50
+            """,
+            (user_id,),
+        )
+        return await cur.fetchall()
 
 
 async def get_last_assistant_message(

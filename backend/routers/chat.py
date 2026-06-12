@@ -7,11 +7,11 @@ import psycopg
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
-from backend.dependencies import get_current_user
-from backend.agent.runner import run_agent
-from backend.schemas import MessageRequest, ThreadResponse
-from backend.core.db import get_db
-from backend.crud.thread import save_message, create_thread
+from dependencies import get_current_user
+from agent.runner import run_agent
+from schemas import MessageRequest, ThreadResponse
+from core.db import get_db
+from crud.thread import save_message, create_thread, get_thread_messages, get_user_threads
 
 
 router = APIRouter(prefix="/threads", tags=["chat"])
@@ -50,3 +50,21 @@ async def send_message(
 
     return StreamingResponse(stream_generator(), media_type="text/event-stream",
                            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+@router.get("", response_model=list[ThreadResponse])
+async def list_threads(
+    current_user: Optional[dict] = Depends(get_current_user),
+    db: psycopg.AsyncConnection = Depends(get_db),
+):
+    if not current_user:
+        return []
+    threads = await get_user_threads(db, user_id=current_user["id"])
+    return [ThreadResponse(thread_id=t["id"]) for t in threads]
+
+
+@router.get("/{thread_id}/messages")
+async def get_messages(
+    thread_id: str,
+    db: psycopg.AsyncConnection = Depends(get_db),
+):
+    return await get_thread_messages(db, thread_id)

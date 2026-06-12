@@ -11,11 +11,11 @@ from langchain_core.runnables import RunnableConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-from backend.state import AgentState
-from backend.agent.inference_clients import rerank_documents
-from backend.agent.conversation import format_history_for_prompt, RECENT_TOKEN_BUDGET
+from state import AgentState
+from agent.inference_clients import rerank_documents
+from agent.conversation import format_history_for_prompt, RECENT_TOKEN_BUDGET
 
-from backend.langfuse.prompts import get_system_prompt
+from langfuse_client.prompts import get_system_prompt
 
 load_dotenv()
 logger = logging.getLogger(__name__)
